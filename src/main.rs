@@ -2,12 +2,15 @@
 
 #[macro_use] extern crate rocket;
 
+use std::env;
+use std::path::PathBuf;
+
 use dotenv::dotenv;
 use env_logger::Env;
 use log::{info};
 use rocket::response::content::Json;
+use rocket::response::NamedFile;
 use serde::Serialize;
-use std::env;
 
 #[derive(Serialize)]
 struct HealthResponse {
@@ -18,6 +21,12 @@ struct HealthResponse {
 #[get("/")]
 fn index() -> &'static str {
     "Hello, world!"
+}
+
+#[get("/favicon.ico")]
+fn favicon() -> Option<NamedFile> {
+    let path = PathBuf::from("static/favicon.ico");
+    NamedFile::open(path).ok()
 }
 
 #[get("/health")]
@@ -35,6 +44,6 @@ fn main() {
     info!("This is where I'd establish db connection!");
 
     rocket::ignite()
-        .mount("/", routes![index, health])
+        .mount("/", routes![index, favicon, health])
         .launch();
 }
