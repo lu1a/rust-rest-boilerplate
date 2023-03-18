@@ -3,8 +3,11 @@
 #[macro_use] extern crate rocket;
 
 use dotenv::dotenv;
+use env_logger::Env;
+use log::{info};
 use rocket::response::content::Json;
 use serde::Serialize;
+use std::env;
 
 #[derive(Serialize)]
 struct HealthResponse {
@@ -19,7 +22,7 @@ fn index() -> &'static str {
 
 #[get("/health")]
 fn health() -> Json<String> {
-    let env_type = std::env::var("ENVIRONMENT").unwrap_or_default();
+    let env_type = env::var("ENVIRONMENT").unwrap_or_default();
     let response = HealthResponse { env: env_type, status: "ok".to_string() };
     let json = serde_json::to_string(&response).unwrap();
     Json(json)
@@ -27,9 +30,11 @@ fn health() -> Json<String> {
 
 fn main() {
     dotenv().ok();
+    env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
+    
+    info!("This is where I'd establish db connection!");
 
     rocket::ignite()
-        .mount("/", routes![index])
-        .mount("/", routes![health])
+        .mount("/", routes![index, health])
         .launch();
 }
